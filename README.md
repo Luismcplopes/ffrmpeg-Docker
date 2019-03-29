@@ -1,4 +1,9 @@
 # Minimal FFmpeg Docker image built on Alpine Linux
+![travis-ci Build Status](https://img.shields.io/travis/com/Luismcplopes/ffrmpeg-Docker.svg?logo=travis)
+![Docker Pulls](https://img.shields.io/docker/pulls/luismcplopes/ffrmpeg-Docker.svg?style=popout?logo=docker)
+[![last-commit](https://img.shields.io/github/last-commit/Luismcplopes/ffrmpeg-Docker.svg?logo=github)](https://img.shields.io/github/last-commit/Luismcplopes/ffrmpeg-Docker.svg?logo=github)
+![docker build](https://img.shields.io/docker/build/luismcplopes/ffrmpeg-Docker.svg?logo=docker)
+[![license](https://img.shields.io/github/license/Luismcplopes/ffrmpeg-Docker.svg?logo=github)](https://img.shields.io/github/license/Luismcplopes/ffrmpeg-Docker.svg?logo=github)
 
 The image is only **106.7 MB** versus ~350 MB.
 
