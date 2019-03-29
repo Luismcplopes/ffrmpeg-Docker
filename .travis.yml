@@ -9,7 +9,7 @@ services:
   - docker
 
 env:
- - RepoName=ffmpg-docker
+  - image="$REPO_NAME"
 
  branches:
   only:
@@ -25,7 +25,7 @@ install:
   - docker images
   
 before_script:
-  - image="$RepoName"
+  - image="$REPO_NAME"
 
 script:
   - docker build -t ${image} .
@@ -48,7 +48,3 @@ notifications:
       - ${SLACK_TOKEN}
     on_success: always # default: always
     on_failure: always # default: always  
-
-#docker run -it  --rm yokogawa/ansible-lint ansible-lint  --version
-#https://hub.docker.com/r/frntn/ansible-lint/dockerfile
-
