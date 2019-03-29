@@ -3,30 +3,12 @@ sudo: required
 services:
   - docker
 
-env:
-
-
-before_install:
-  - docker images
-
-install:
-  - docker images
-  
-before_script:
-  - docker images
-
 script:
   - docker build -t $REPO_NAME .
   - docker tag $REPO_NAME $DOCKER_USERNAME/$REPO_NAME
   - docker images
- 
-after_script:
   - docker run --rm $DOCKER_USERNAME/$REPO_NAME 
   - docker run --rm $DOCKER_USERNAME/$REPO_NAME 
-  - docker images 
-# vim:set et ts=2 sw=2:  
-
-after_success:
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   - docker push $DOCKER_USERNAME/$REPO_NAME
 
