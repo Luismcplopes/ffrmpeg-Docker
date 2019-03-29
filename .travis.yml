@@ -8,6 +8,8 @@ python:
 services:
   - docker
 
+env:
+  image: $REPO_NAME
 
 before_install:
   - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
@@ -19,7 +21,7 @@ install:
   - docker images
   
 before_script:
-  - image="$REPO_NAME"
+#  - image="$REPO_NAME"
 
 script:
   - docker build -t ${image} .
