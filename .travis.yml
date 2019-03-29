@@ -25,7 +25,7 @@ install:
   - docker images
   
 before_script:
-  - image="$REPO_NAME"
+  - docker images
 
 script:
   - docker build -t ${image} .
