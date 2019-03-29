@@ -8,8 +8,6 @@ python:
 services:
   - docker
 
-env:
-  - image="$REPO_NAME"
 
  branches:
   only:
@@ -25,7 +23,7 @@ install:
   - docker images
   
 before_script:
-  - docker images
+  - image="$REPO_NAME"
 
 script:
   - docker build -t ${image} .
