@@ -1,20 +1,14 @@
-sudo: required
+dist: trusty
 
-services:
-  - docker
+jobs:
+  include:
+    - stage: build docker image
+      script:
+      - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+      - docker build -t $REPO_NAME .
+      - docker images
+      - docker tag $REPO_NAME $DOCKER_USERNAME/$REPO_NAME
+      - docker push $DOCKER_USERNAME/$REPO_NAME
+    - stage: test
+      script: - docker run --rm $DOCKER_USERNAME/$REPO_NAME 
 
-script:
-  - docker build -t $REPO_NAME .
-  - docker tag $REPO_NAME $DOCKER_USERNAME/$REPO_NAME
-  - docker images
-  - docker run --rm $DOCKER_USERNAME/$REPO_NAME 
-  - docker run --rm $DOCKER_USERNAME/$REPO_NAME 
-  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-  - docker push $DOCKER_USERNAME/$REPO_NAME
-
-notifications: 
-  slack:
-    rooms:
-      - ${SLACK_TOKEN}
-    on_success: always # default: always
-    on_failure: always # default: always 
