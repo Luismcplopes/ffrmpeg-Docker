@@ -1,41 +1,74 @@
-Explicação do Fluxo de Trabalho:
-Evento push e pull_request:
+Aqui está um exemplo de sintaxe de fluxo de trabalho para o GitHub Actions que faz o build de um contêiner Docker e o envia para o Docker Hub.
 
-O fluxo de trabalho é executado sempre que há um push ou um pull_request para a branch main (ou qualquer outra branch configurada).
+### Exemplo de fluxo de trabalho no GitHub Actions (`.github/workflows/docker-image.yml`):
 
-Passos do Job:
+```yaml
+name: Build and Push Docker Image
 
-Checkout do repositório: O código é recuperado do repositório.
+on:
+  push:
+    branches:
+      - main  # Ou qualquer outra branch que deseja que o workflow seja executado
 
-Configuração do Docker Buildx: Utiliza o docker/setup-buildx-action para configurar o Buildx, que é uma ferramenta mais eficiente para builds Docker avançados.
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-Cache de camadas Docker: O cache de camadas ajuda a acelerar builds subsequentes, já que reusa as camadas do Docker que não foram modificadas.
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
 
-Login no Docker Hub: O login no Docker Hub é feito usando segredos configurados no GitHub (DOCKER_USERNAME e DOCKER_PASSWORD).
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-Construção da Imagem Docker: A imagem Docker é construída com o comando docker build e é tagueada com o nome de usuário do Docker Hub (${{ secrets.DOCKER_USERNAME }}/ffmpeg-docker:latest).
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
 
-Testar a Imagem Docker: O teste é feito rodando o comando ffmpeg -version dentro do contêiner para garantir que a imagem está funcionando corretamente.
+      - name: Log in to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-Push para o Docker Hub: A imagem é enviada para o Docker Hub com o comando docker push.
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/my-image-name:latest
 
-Como Configurar os Segredos no GitHub:
-Para garantir que o fluxo de trabalho possa acessar suas credenciais do Docker Hub de forma segura, é necessário configurar os segredos no GitHub:
+```
 
-Vá até o repositório no GitHub.
+### Explicação do Fluxo de Trabalho:
 
-Acesse Settings > Secrets and variables > Actions.
+1. **`on: push`**: O fluxo de trabalho é acionado sempre que há um `push` para a branch `main`. Você pode alterar a branch ou usar outros eventos de trigger conforme necessário.
 
-Adicione os seguintes segredos:
+2. **`jobs.build`**: A job de build é definida para rodar em `ubuntu-latest`.
 
-DOCKER_USERNAME: Seu nome de usuário do Docker Hub.
+3. **`actions/checkout@v2`**: Este passo faz o checkout do repositório para que o Dockerfile e os arquivos necessários possam ser usados para construir a imagem Docker.
 
-DOCKER_PASSWORD: Sua senha do Docker Hub ou um token de acesso (recomendado usar um token de acesso para maior segurança).
+4. **`docker/setup-buildx-action@v2`**: Configura o Buildx para construir imagens Docker de forma otimizada.
 
-Testando a Imagem:
-No passo de Testar a Imagem Docker, utilizamos o comando docker run para executar a imagem gerada e testar se o comando ffmpeg está funcionando. Esse teste pode ser ajustado conforme o seu caso de uso. Por exemplo, se você tiver um teste mais específico para o seu contêiner, é só adaptar o comando que executa dentro da imagem.
+5. **`actions/cache@v2`**: Faz cache das camadas do Docker para acelerar o processo de build nas execuções subsequentes.
 
-Fluxo de Trabalho Completo:
-Esse fluxo de trabalho garante que, sempre que você fizer um push ou abrir um pull request na branch main, a imagem será construída, testada e empurrada para o Docker Hub automaticamente.
+6. **`docker/login-action@v2`**: Faz login no Docker Hub com as credenciais armazenadas nos segredos do GitHub. As credenciais (`DOCKER_USERNAME` e `DOCKER_PASSWORD`) precisam ser configuradas como segredos no repositório (Settings > Secrets).
 
-Se precisar de mais alguma modificação ou ajuda adicional, é só avisar!
+7. **`docker/build-push-action@v3`**: Constrói e envia a imagem Docker para o Docker Hub. A imagem será tagueada como `DOCKER_USERNAME/my-image-name:latest` (substitua `my-image-name` pelo nome da sua imagem).
+
+### Como configurar os segredos no GitHub:
+
+1. Vá até o repositório no GitHub.
+2. Acesse **Settings** > **Secrets and variables** > **Actions**.
+3. Adicione os segredos:
+
+   * **DOCKER\_USERNAME**: Seu nome de usuário do Docker Hub.
+   * **DOCKER\_PASSWORD**: Sua senha do Docker Hub ou um token de acesso.
+
+Agora, sempre que você fizer um `push` para a branch especificada (por exemplo, `main`), o GitHub Actions irá construir a imagem Docker e empurrá-la para o Docker Hub automaticamente.
+
+Se precisar de mais ajustes ou detalhes, é só avisar!
