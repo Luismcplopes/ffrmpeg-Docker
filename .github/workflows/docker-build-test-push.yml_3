@@ -1,0 +1,68 @@
+name: Build, Test and Push Docker Image to Docker Hub and GHCR
+
+on:
+  push:
+    branches:
+      - main  # Ou outra branch desejada
+  pull_request:
+    branches:
+      - main  # Garante que os testes também sejam realizados para PRs
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Fazer checkout do repositório
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      # 2. Set up Docker Buildx (para uma build eficiente e multi-plataforma)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # 3. Cache Docker layers para aceleração de build
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      # 4. Logar no Docker Hub
+      - name: Log in to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # 5. Logar no GitHub Container Registry (GHCR)
+      - name: Log in to GHCR
+        uses: docker/login-action@v2
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 6. Construir a imagem Docker
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/ffmpeg-docker:latest .
+          docker build -t ghcr.io/${{ github.repository_owner }}/ffmpeg-docker:latest .
+
+      # 7. Testar a imagem Docker
+      - name: Test Docker image
+        run: |
+          # Testar a imagem criada rodando um comando básico, ex: ffmpeg -version
+          docker run --rm ${{ secrets.DOCKER_USERNAME }}/ffmpeg-docker:latest ffmpeg -version
+          docker run --rm ghcr.io/${{ github.repository_owner }}/ffmpeg-docker:latest ffmpeg -version
+
+      # 8. Enviar a imagem para o Docker Hub
+      - name: Push Docker image to Docker Hub
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/ffmpeg-docker:latest
+
+      # 9. Enviar a imagem para o GitHub Container Registry (GHCR)
+      - name: Push Docker image to GHCR
+        run: |
+          docker push ghcr.io/${{ github.repository_owner }}/ffmpeg-docker:latest
